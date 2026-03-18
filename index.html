@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aprende a programar PRO</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    color:white;
+    text-align:center;
+}
+
+h1{
+    padding:20px;
+    background:rgba(0,0,0,0.4);
+}
+
+.contenedor{
+    margin:20px auto;
+    padding:20px;
+    width:80%;
+    border-radius:15px;
+    background:rgba(0,0,0,0.5);
+    box-shadow:0 0 15px cyan;
+}
+
+button{
+    padding:10px 20px;
+    margin:10px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:16px;
+    background:#00c6ff;
+    color:white;
+}
+
+button:hover{
+    background:#0072ff;
+    transform:scale(1.1);
+}
+
+#barraXP{
+    width:80%;
+    height:20px;
+    background:#333;
+    border-radius:20px;
+    margin:10px auto;
+    overflow:hidden;
+}
+
+#progresoXP{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, lime, cyan);
+    transition:0.5s;
+}
+</style>
+</head>
+
+<body>
+
+<h1>💻 Aprende Programación Jugando (PRO)</h1>
+
+<div class="contenedor">
+    <p id="vidas"></p>
+
+    <div id="barraXP">
+        <div id="progresoXP"></div>
+    </div>
+
+    <button onclick="reiniciarJuego()">🔄 Reiniciar</button>
+</div>
+
+<div class="contenedor" id="juego">
+    <h2 id="titulo"></h2>
+    <p id="pregunta"></p>
+    <div id="respuestas"></div>
+</div>
+
+<!-- SONIDOS -->
+<audio id="correcto" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+<audio id="error" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+<script>
+
+// ================= VARIABLES =================
+let vidas = localStorage.getItem("vidas") || 3;
+let xp = localStorage.getItem("xp") || 0;
+let nivel = 0;
+
+// ================= PREGUNTAS =================
+const preguntas = [
+{
+pregunta: "¿Qué es una variable?",
+opciones: ["Un espacio para guardar datos", "Un bucle"],
+correcta: 0
+},
+{
+pregunta: "¿Qué hace 'if'?",
+opciones: ["Evalúa una condición", "Repite código"],
+correcta: 0
+},
+{
+pregunta: "¿Qué es un ciclo?",
+opciones: ["Repetir acciones", "Guardar datos"],
+correcta: 0
+},
+{
+pregunta: "¿Qué hace una función?",
+opciones: ["Agrupa código reutilizable", "Crea variables"],
+correcta: 0
+},
+{
+pregunta: "¿Qué es el DOM?",
+opciones: ["Estructura del HTML", "Un lenguaje"],
+correcta: 0
+}
+];
+
+// ================= FUNCIONES =================
+
+function actualizarUI(){
+    document.getElementById("vidas").innerHTML = "❤️".repeat(vidas);
+    document.getElementById("progresoXP").style.width = xp + "%";
+
+    localStorage.setItem("vidas", vidas);
+    localStorage.setItem("xp", xp);
+}
+
+function cargarPregunta(){
+    if(nivel >= preguntas.length){
+        alert("🎉 ¡Completaste el juego!");
+        guardarProgreso();
+        return;
+    }
+
+    let p = preguntas[nivel];
+
+    document.getElementById("titulo").innerText = "Nivel " + (nivel+1);
+    document.getElementById("pregunta").innerText = p.pregunta;
+
+    let html = "";
+    p.opciones.forEach((op, i)=>{
+        html += `<button onclick="responder(${i})">${op}</button>`;
+    });
+
+    document.getElementById("respuestas").innerHTML = html;
+}
+
+function responder(opcion){
+    let p = preguntas[nivel];
+
+    if(opcion === p.correcta){
+        document.getElementById("correcto").play();
+        xp = Math.min(parseInt(xp) + 20, 100);
+        nivel++;
+    } else {
+        document.getElementById("error").play();
+        vidas--;
+    }
+
+    if(vidas <= 0){
+        alert("💀 Game Over");
+        reiniciarJuego();
+        return;
+    }
+
+    actualizarUI();
+    cargarPregunta();
+}
+
+function reiniciarJuego(){
+    vidas = 3;
+    xp = 0;
+    nivel = 0;
+    actualizarUI();
+    cargarPregunta();
+}
+
+function guardarProgreso(){
+    fetch("guardar.php", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `nombre=Jugador&xp=${xp}&vidas=${vidas}`
+    });
+}
+
+// ================= INICIO =================
+actualizarUI();
+cargarPregunta();
+
+</script>
+
+</body>
+</html>
